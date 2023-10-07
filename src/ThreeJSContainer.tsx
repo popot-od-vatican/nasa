@@ -4,9 +4,37 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import * as Planets from './planets.tsx';
 import * as THREE from 'three';
 
-export default function ThreeScene()
+function getPlanet(planetName: string)
+{
+    switch(planetName)
+    {
+        case "Mercury":
+            return {"Planet": Planets.Mercury, "Atmosphere": Planets.MercuryAtmosphere};
+        case "Venus":
+            return {"Planet": Planets.Venus, "Atmosphere": Planets.VenusAtmosphere};
+        case "Mars":
+            return {"Planet": Planets.Mars, "Atmosphere": Planets.MarsAtmosphere};
+        case "Jupiter":
+            return {"Planet": Planets.Jupiter, "Atmosphere": Planets.JupiterAtmosphere};
+        case "Saturn":
+            return {"Planet": Planets.Saturn, "Atmosphere": Planets.SaturnAtmosphere};
+        case "Uranus":
+            return {"Planet": Planets.Uranus, "Atmosphere": Planets.UranusAtmosphere};
+        case "Neptun":
+            return {"Planet": Planets.Neptun, "Atmosphere": Planets.NeptunAtmosphere};
+        default:
+            return "EBI SE";
+    }
+}
+
+export default function ThreeScene(props)
 {
     const canvasRef = useRef(null);
+    let planetObj: any;
+    let planetAtmosphere: any;
+
+    {planetObj = getPlanet(props.planetName).Planet}
+    {planetAtmosphere = getPlanet(props.planetName).Atmosphere;}
 
     useEffect(() => {
         const scene = new THREE.Scene();
@@ -23,15 +51,21 @@ export default function ThreeScene()
         labelRenderer.domElement.style.top = '0px';
         document.body.appendChild(labelRenderer.domElement);
 
+        function onWindowResize(){
+
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+        
+            renderer.setSize( window.innerWidth, window.innerHeight );
+            labelRenderer.setSize( window.innerWidth, window.innerHeight );
+        
+        }
+
+        window.addEventListener('resize', onWindowResize, false);
+
         const raycast = new THREE.Raycaster();
 
-        scene.add(Planets.Mars.bodyMesh);
-        //Planets.Mercury.bodyMesh.add(label);
         scene.add(camera);
-
-        Planets.Mars.addLocation(40.0834, 22.3499, 'Olympus mons');
-        Planets.Mars.addLocation(22.1, 352.0, 'Becquerel');
-        Planets.Mars.addLocation(-13.74, 59.20, 'Valles Marineris');
 
         //div.addEventListener('pointerdown', ()=>{console.log(1)})
 
@@ -51,7 +85,6 @@ export default function ThreeScene()
         })
 
         //scene.background = new THREE.TextureLoader().load('./textures/background.png');
-
         // Add a cube to the scene
         //const globe = new Planet(4.5, 50, 50, earthTexture);
         //globe.addToScene(scene);
@@ -62,7 +95,9 @@ export default function ThreeScene()
         // Position the camera
         //scene.add(Planets.Mars.bodyMesh);
         //scene.add(Planets.MarsAtmosphere.bodyMesh);
-        camera.position.z = 10;
+        camera.position.z = 8;
+        scene.add(planetObj.bodyMesh);
+        scene.add(planetAtmosphere.bodyMesh);
 
         const controls = new OrbitControls(camera, labelRenderer.domElement);
         // Animation function
@@ -70,9 +105,10 @@ export default function ThreeScene()
             requestAnimationFrame(animate);
 
             //Planets.Mercury.bodyMesh.rotateY(0.001);
+            const canvas = renderer.domElement;
+            camera.aspect = canvas.clientWidth / canvas.clientHeight;
+            camera.updateProjectionMatrix();
 
-
-            Planets.Mars.updateLabelVisibility(scene, camera, raycast);
 
             labelRenderer.render(scene, camera);
             renderer.render(scene, camera);
