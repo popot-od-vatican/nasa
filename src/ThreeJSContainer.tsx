@@ -23,22 +23,15 @@ export default function ThreeScene()
         labelRenderer.domElement.style.top = '0px';
         document.body.appendChild(labelRenderer.domElement);
 
-        const div = document.createElement('div');
-        div.className = 'label';
-        div.textContent = 'NESO';
-        div.style.background = 'purple';
-
         const raycast = new THREE.Raycaster();
 
         scene.add(Planets.Mars.bodyMesh);
-
-        const label = new CSS2DObject(div);
-        label.position.set(0.0, 0, -3.5);
         //Planets.Mercury.bodyMesh.add(label);
-        scene.add(label);
         scene.add(camera);
 
-        Planets.Mars.addLocation(51.5072, 0.1276);
+        Planets.Mars.addLocation(40.0834, 22.3499, 'Olympus mons');
+        Planets.Mars.addLocation(22.1, 352.0, 'Becquerel');
+        Planets.Mars.addLocation(-13.74, 59.20, 'Valles Marineris');
 
         //div.addEventListener('pointerdown', ()=>{console.log(1)})
 
@@ -78,14 +71,8 @@ export default function ThreeScene()
 
             //Planets.Mercury.bodyMesh.rotateY(0.001);
 
-            label.getWorldPosition(raycast.ray.origin);
-            const rd=camera.position.clone().sub(raycast.ray.origin).normalize();
-            raycast.ray.direction.set(rd.x,rd.y,rd.z);
-            const hits=raycast.intersectObjects(scene.children);
-            if(hits.length>0){ label.visible=false; }
-            else{ label.visible=true; }
 
-
+            Planets.Mars.updateLabelVisibility(scene, camera, raycast);
 
             labelRenderer.render(scene, camera);
             renderer.render(scene, camera);
@@ -99,6 +86,6 @@ export default function ThreeScene()
         };
     }, []);
     return (
-        <div ref={canvasRef}></div>
+        <></>
     );
 }

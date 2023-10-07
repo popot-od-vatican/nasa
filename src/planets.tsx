@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { CSS2DObject, CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 
 
@@ -70,6 +71,7 @@ class Planet
     public widthSeg: number;
     public heightSeg: number;
     public bodyMesh: any;
+    public labels: any = [];
 
     constructor(radius: number, widthSeg: number, heightSeg: number, texture: any)
     {
@@ -82,7 +84,7 @@ class Planet
         this.bodyMesh = new THREE.Mesh(bodyGeo, texture);
     }
 
-    addLocation(lat: any, lon: any): void
+    addLocation(lat: any, lon: any, name: string): void
     {
         const pointGeo = new THREE.SphereGeometry(0.08, 20, 20);
         const pointMat = new THREE.MeshBasicMaterial({color: "red"});
@@ -97,6 +99,30 @@ class Planet
         );
         pointMesh.rotation.set(0.0, -lonRad, latRad - Math.PI * 0.5);
         this.bodyMesh.add(pointMesh);
+
+        const div = document.createElement('div');
+        div.className = 'label';
+        div.textContent = name;
+        div.style.background = 'purple';
+        const label = new CSS2DObject(div);
+        label.position.set(Math.cos(latRad) * Math.cos(lonRad) * this.radius, Math.sin(latRad) * this.radius, Math.cos(latRad) * Math.sin(lonRad) * this.radius);
+        label.center.set(0, 1);
+        this.bodyMesh.add(label);
+        this.labels.push(label);
+
+    }
+
+    updateLabelVisibility(scene: any, camera: any, raycast: any): void
+    {
+        for(let i = 0; i < this.labels.length; ++i)
+        {
+            this.labels[i].getWorldPosition(raycast.ray.origin);
+            const rd=camera.position.clone().sub(raycast.ray.origin).normalize();
+            raycast.ray.direction.set(rd.x,rd.y,rd.z);
+            const hits=raycast.intersectObjects(scene.children);
+            if(hits.length>0){ this.labels[i].visible=false; }
+            else{ this.labels[i].visible=true; }
+        }
     }
 
     addToScene(scene: any): void
