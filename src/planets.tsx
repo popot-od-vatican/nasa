@@ -73,7 +73,7 @@ class Planet
     public bodyMesh: any;
     public labels: any = [];
 
-    constructor(radius: number, widthSeg: number, heightSeg: number, texture: any)
+    constructor(radius: number, widthSeg: number, heightSeg: number, texture: any, name: string = "")
     {
         this.radius = radius;
         this.widthSeg = widthSeg;
@@ -82,11 +82,12 @@ class Planet
         const bodyGeo = new THREE.SphereGeometry(this.radius, this.widthSeg, this.heightSeg);
         
         this.bodyMesh = new THREE.Mesh(bodyGeo, texture);
+        this.bodyMesh.name = name;
     }
 
-    addLocation(lat: any, lon: any, name: string): void
+    addLocation(scene: any, lat: any, lon: any, name: string): void
     {
-        const pointGeo = new THREE.SphereGeometry(0.08, 20, 20);
+        const pointGeo = new THREE.SphereGeometry(0.05, 20, 20);
         const pointMat = new THREE.MeshBasicMaterial({color: "red"});
         const pointMesh = new THREE.Mesh(pointGeo, pointMat);
 
@@ -103,25 +104,37 @@ class Planet
         const div = document.createElement('div');
         div.className = 'label';
         div.textContent = name;
-        div.style.background = 'purple';
+        div.style.background = 'blue';
         const label = new CSS2DObject(div);
-        label.position.set(Math.cos(latRad) * Math.cos(lonRad) * this.radius, Math.sin(latRad) * this.radius, Math.cos(latRad) * Math.sin(lonRad) * this.radius);
-        label.center.set(0, 1);
+        label.position.set(Math.cos(latRad) * Math.cos(lonRad) * this.radius + 0.19, Math.sin(latRad) * this.radius + 0.19, Math.cos(latRad) * Math.sin(lonRad) * this.radius * 1.10);
+        //label.position.set(label.position.x - div.offsetWidth/2, label.position.y, label.position.z);
+        div.addEventListener('pointerdown', ()=>{console.log(11)})
         this.bodyMesh.add(label);
         this.labels.push(label);
-
+        label.element.style.opacity = '0';
     }
 
     updateLabelVisibility(scene: any, camera: any, raycast: any): void
     {
         for(let i = 0; i < this.labels.length; ++i)
         {
+            raycast.ray.origin.copy(camera.position);
             this.labels[i].getWorldPosition(raycast.ray.origin);
             const rd=camera.position.clone().sub(raycast.ray.origin).normalize();
             raycast.ray.direction.set(rd.x,rd.y,rd.z);
+
             const hits=raycast.intersectObjects(scene.children);
-            if(hits.length>0){ this.labels[i].visible=false; }
-            else{ this.labels[i].visible=true; }
+            //console.log(this.labels[i]);
+            if(hits.length > 0){
+                //console.log(0);
+                //this.labels[i].visible = false;
+                this.labels[i].element.style.opacity = '0';
+            }
+            else{
+                //console.log(1);
+                //this.labels[i].visible = true;
+                this.labels[i].element.style.opacity = '1';
+            }
         }
     }
 
@@ -306,7 +319,7 @@ export const uranusAtmoSphereTexture = new THREE.ShaderMaterial({
 });
 
 // Neptun
-export const neptunTexture = new THREE.ShaderMaterial({
+export const neptuneTexture = new THREE.ShaderMaterial({
     uniforms:
     {
         globeTexture: {
@@ -320,7 +333,7 @@ export const neptunTexture = new THREE.ShaderMaterial({
     fragmentShader: fragmetShader,
 });
 
-export const neptunAtmoSphereTexture = new THREE.ShaderMaterial({
+export const neptuneAtmoSphereTexture = new THREE.ShaderMaterial({
 
     uniforms: {
         vColor: {
@@ -335,32 +348,23 @@ export const neptunAtmoSphereTexture = new THREE.ShaderMaterial({
 });
 
 
-export const Mercury = new Planet(3.2, 50, 50, mercuryTexture);
-export const MercuryAtmosphere = new Planet(3.55, 50, 50, mercuryAtmoSphereTexture);
+export const Mercury = new Planet(3.2, 50, 50, mercuryTexture, "Mercury");
+export const MercuryAtmosphere = new Planet(3.55, 50, 50, mercuryAtmoSphereTexture, "Atmosphere");
 
-export const Venus = new Planet(3.2, 50, 50, venusTexture);
-export const VenusAtmosphere = new Planet(3.6, 50, 50, venusAtmoSphereTexture);
+export const Venus = new Planet(3.2, 50, 50, venusTexture, "Venus");
+export const VenusAtmosphere = new Planet(3.6, 50, 50, venusAtmoSphereTexture, "Atmosphere");
 
-export const Mars = new Planet(3.2, 50, 50, marsTexture);
-export const MarsAtmosphere = new Planet(3.4, 50, 50, marsAtmoSphereTexture);
+export const Mars = new Planet(3.2, 50, 50, marsTexture, "Mars");
+export const MarsAtmosphere = new Planet(3.4, 50, 50, marsAtmoSphereTexture, "Atmosphere");
 
-export const Jupiter = new Planet(4.2, 50, 50, jupiterTexture);
-export const JupiterAtmosphere = new Planet(4.6, 50, 50, jupiterAtmoSphereTexture);
+export const Jupiter = new Planet(4.2, 50, 50, jupiterTexture, "Jupiter");
+export const JupiterAtmosphere = new Planet(4.6, 50, 50, jupiterAtmoSphereTexture, "Atmosphere");
 
-export const Saturn = new Planet(3.9, 50, 50, saturnTexture);
-export const SaturnAtmosphere = new Planet(4.1, 50, 50, saturnAtmoSphereTexture);
+export const Saturn = new Planet(3.9, 50, 50, saturnTexture, "Saturn");
+export const SaturnAtmosphere = new Planet(4.1, 50, 50, saturnAtmoSphereTexture, "Atmosphere");
 
-export const Uranus = new Planet(3.2, 50, 50, uranusTexture);
-export const UranusAtmosphere = new Planet(3.4, 50, 50, uranusAtmoSphereTexture);
+export const Uranus = new Planet(3.2, 50, 50, uranusTexture, "Uranus");
+export const UranusAtmosphere = new Planet(3.4, 50, 50, uranusAtmoSphereTexture, "Atmosphere");
 
-export const Neptun = new Planet(2.76, 50, 50, neptunTexture);
-export const NeptunAtmosphere = new Planet(2.92, 50, 50, neptunAtmoSphereTexture);
-
-
-// Lokacii
-Mars.addLocation(40.0834, 22.3499, 'Olympus mons');
-Mars.addLocation(22.1, 352.0, 'Becquerel');
-Mars.addLocation(-13.74, 59.20, 'Valles Marineris');
-Mars.addLocation(22, 342, 'Mawrth Vallis');
-Mars.addLocation(2.19, 342.96, 'Iani Chaos');
-Mars.addLocation(78.88, 90.0, 'Iani Chaos');
+export const Neptune = new Planet(2.76, 50, 50, neptuneTexture, "Neptun");
+export const NeptuneAtmosphere = new Planet(2.92, 50, 50, neptuneAtmoSphereTexture, "Atmosphere");
