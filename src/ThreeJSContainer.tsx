@@ -18,6 +18,8 @@ function calculateDistance(xObj: any, yObj: [number, number, number])
 }
 
 let finished = false;
+let planetObj: any;
+let planetAtmosphere: any;
 
 function cameraAnimationZoomIn(camera: any, yObj: [number, number, number], speed: any, planetObj: any, scene: any, raycast: any, controls: any)
 {
@@ -30,11 +32,10 @@ function cameraAnimationZoomIn(camera: any, yObj: [number, number, number], spee
             camera.getWorldDirection(moveDirection);
             moveDirection.multiplyScalar(speed);
             camera.position.add(moveDirection);
-            planetObj.bodyMesh.rotateY(speed/8.0);
+            planetObj.bodyMesh.scene.rotateY(speed/8.0);
         }
         else
         {
-            console.log('Finished');
             controls.enableRotate = true;
             finished = true;
             return;
@@ -46,24 +47,100 @@ function cameraAnimationZoomIn(camera: any, yObj: [number, number, number], spee
     }
 }
 
-function getPlanet(planetName: string)
+async function getPlanet(planetName: string)
 {
     switch(planetName)
     {
         case "Mercury":
-            return {"Planet": Planets.Mercury, "Atmosphere": Planets.MercuryAtmosphere};
+            await Planets.LoadMercury();
+            Planets.Mercury.bodyMesh.scene.scale.set(0.008, 0.008, 0.008);
+            planetObj = Planets.Mercury;
+            planetAtmosphere = Planets.MercuryAtmosphere;
+            break;
         case "Venus":
-            return {"Planet": Planets.Venus, "Atmosphere": Planets.VenusAtmosphere};
+            await Planets.LoadVenus();
+            Planets.Venus.bodyMesh.scene.scale.set(0.01, 0.01, 0.01);
+            planetObj = Planets.Venus;
+            planetAtmosphere = Planets.VenusAtmosphere;
+            break;
         case "Mars":
-            return {"Planet": Planets.Mars, "Atmosphere": Planets.MarsAtmosphere};
+            await Planets.LoadMars();
+            Planets.Mars.bodyMesh.scene.scale.set(0.01, 0.01, 0.01);
+            planetObj = Planets.Mars;
+            planetAtmosphere = Planets.MarsAtmosphere;
+            break;
         case "Jupiter":
-            return {"Planet": Planets.Jupiter, "Atmosphere": Planets.JupiterAtmosphere};
+            await Planets.LoadJupiter();
+            Planets.Jupiter.bodyMesh.scene.scale.set(0.01, 0.01, 0.01);
+            planetObj = Planets.Jupiter;
+            planetAtmosphere = Planets.JupiterAtmosphere;
+            break;
         case "Saturn":
-            return {"Planet": Planets.Saturn, "Atmosphere": Planets.SaturnAtmosphere};
+            await Planets.LoadSaturn();
+            Planets.Saturn.bodyMesh.scene.scale.set(0.0076, 0.0076, 0.0076);
+            Planets.Saturn.bodyMesh.scene.rotateX(0.15);
+            Planets.SaturnAtmosphere.bodyMesh.rotateX(0.15);
+            planetObj = Planets.Saturn;
+            planetAtmosphere = Planets.SaturnAtmosphere;
+            break;
         case "Uranus":
-            return {"Planet": Planets.Uranus, "Atmosphere": Planets.UranusAtmosphere};
+            await Planets.LoadUranus();
+            Planets.Uranus.bodyMesh.scene.scale.set(0.01, 0.01, 0.01);
+            planetObj = Planets.Uranus;
+            planetAtmosphere = Planets.UranusAtmosphere;
+            break;
         case "Neptune":
-            return {"Planet": Planets.Neptune, "Atmosphere": Planets.NeptuneAtmosphere};
+            await Planets.LoadNeptune();
+            Planets.Neptune.bodyMesh.scene.scale.set(0.01, 0.01, 0.01);
+            planetObj = Planets.Neptune;
+            planetAtmosphere = Planets.NeptuneAtmosphere;
+            break;
+        default:
+            return "EBI SE";
+    }
+}
+
+function LoadPlanetsLocation(scene: any, planetName: any, labelColor: any)
+{
+    console.log(labelColor);
+    switch(planetName)
+    {
+        case "Mercury":
+            Planets.Mercury.addLocation(scene, 31.46, 174.15, 'Caloris Montes', 4.0, labelColor)
+            break;
+        case "Venus":
+            {
+                const radius = 5.0;
+                Planets.Venus.addLocation(scene, 65.2, 3.3, 'Maxwell Montes', radius, labelColor);
+                Planets.Venus.addLocation(scene, 68.6, 399.3, 'Lakshmi Planum', radius, labelColor);
+            }
+            break;
+        case "Mars":
+            {
+                const radius = 5.010;
+                Planets.Mars.addLocation(scene, 88, 15, 'North Pole', radius, labelColor);
+                Planets.Mars.addLocation(scene, -83.9, 160, 'Southern Pole', radius+0.130,labelColor);
+                Planets.Mars.addLocation(scene, 24.6, -65, 'Kasei Valles', radius, labelColor);
+                Planets.Mars.addLocation(scene, 0.8, -35.4, 'Hydraotes Chaos', radius, labelColor); 
+                Planets.Mars.addLocation(scene, 22, 342, 'Mawrth Vallis', radius, labelColor);
+                Planets.Mars.addLocation(scene, 22.1, 315.0, 'Becquerel Crater', radius, labelColor);
+                Planets.Mars.addLocation(scene, 2.19, 342.96, 'Iani Chaos', radius, labelColor);
+                Planets.Mars.addLocation(scene, -13.74, 59.20, 'Valles Marineris', radius + 0.15, labelColor);
+                Planets.Mars.addLocation(scene, 1, 76, 'Hebes Chasma', radius + 0.16, labelColor);
+            }
+            break;
+        case "Jupiter":
+            {
+                const radius = 4.95;
+                Planets.Jupiter.addLocation(scene, -22, -112, 'Great Red Spot', radius);
+            }
+            break;
+        case "Saturn":
+            break;
+        case "Uranus":
+            break;
+        case "Neptune":
+            break;
         default:
             return "EBI SE";
     }
@@ -72,11 +149,8 @@ function getPlanet(planetName: string)
 export default function ThreeScene(props: any)
 {
     const canvasRef = useRef(null);
-    let planetObj: any;
-    let planetAtmosphere: any;
 
-    {planetObj = getPlanet(props.planetName).Planet}
-    {planetAtmosphere = getPlanet(props.planetName).Atmosphere;}
+    getPlanet(props.planetName);
 
     useEffect(() => {
         const scene = new THREE.Scene();
@@ -84,6 +158,7 @@ export default function ThreeScene(props: any)
         const renderer = new THREE.WebGLRenderer({ antialias: true, canvas: document.getElementById('viewport') as HTMLCanvasElement});
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
 
         const mouse = new THREE.Vector2();
 
@@ -109,14 +184,6 @@ export default function ThreeScene(props: any)
 
         scene.add(camera);
 
-        Planets.Mars.addLocation(scene, 40.0834, 22.3499, 'Olympus Mons');
-        Planets.Mars.addLocation(scene, 22.1, 352.0, 'Becquerel');
-        Planets.Mars.addLocation(scene, -13.74, 59.20, 'Valles Marineris');
-        Planets.Mars.addLocation(scene, 22, 342, 'Mawrth Vallis');
-        Planets.Mars.addLocation(scene, 2.19, 342.96, 'Iani Chaos');
-        Planets.Mars.addLocation(scene, 78.88, 90.0, 'Promethei Planum');
-        Planets.Mars.addLocation(scene, 1, 76, 'Hebes Chasma');
-
         //div.addEventListener('pointerdown', ()=>{console.log(1)})
 
 
@@ -124,9 +191,7 @@ export default function ThreeScene(props: any)
             mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
             mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
         })
-        camera.position.z = 50;
-        scene.add(planetObj.bodyMesh);
-        scene.add(planetAtmosphere.bodyMesh);
+        camera.position.z = 45;
 
         document.addEventListener('click', ()=>{
             raycast.setFromCamera(mouse, camera);
@@ -137,19 +202,12 @@ export default function ThreeScene(props: any)
 
             for(let i = 0; i < intersects.length; ++i)
             {
-                console.log(intersects[i]);
+                //console.log(intersects[i]);
                 if(intersects[i].object instanceof THREE.Mesh)
                 {
-                    // intersects[i].object.userData => object od Planet ili Star
-                    //if(intersects[i].object.name === "Atmosphere")
-                        //continue;
-                    // TOMIIIIIIIIIIII
-                    console.log(intersects[i].object.name);
-                    // intersects[i].object.userData => object od Planet ili Star
-                    console.log(intersects[i].object.userData);
 
-                    // Ostaj
-                    // Ako go trgnes returnot i raycastot pominuva preku povekje planeti ke bidat registrirani kako da si kliknal na povekje planeti vo isto vreme
+                    //console.log(intersects[i].object.name);
+                    //console.log(intersects[i].object.userData);
                     return;
                 }
             }
@@ -159,12 +217,35 @@ export default function ThreeScene(props: any)
         controls.enableZoom = false;
         controls.enablePan = false;
         controls.enableRotate = false;
+
+        var hemiLight = new THREE.HemisphereLight( 0xffffff, 0x444444, 5.0);
+        hemiLight.position.set( 0, 300, 0 );
+        scene.add( hemiLight );
+
+        var dirLight = new THREE.DirectionalLight( 0xffffff );
+        dirLight.position.set( 75, 300, -75 );
+        scene.add( dirLight );
+
+        let added = false;
         // Animation function
         const animate = () => {
             requestAnimationFrame(animate);
-            cameraAnimationZoomIn(camera, [0, 0, 8.5], 0.5, planetObj, scene, raycast, controls);
 
-            //Planets.Mercury.bodyMesh.rotateY(0.001);
+            if(planetObj !== undefined)
+            {
+                if(!added)
+                {
+                    scene.add(planetObj.bodyMesh.scene);
+                    scene.add(planetAtmosphere.bodyMesh);
+                    LoadPlanetsLocation(scene, props.planetName, props.labelColor);
+                    added = true;
+                }
+                cameraAnimationZoomIn(camera, [0, 0, 12.5], 0.6, planetObj, scene, raycast, controls);
+            }
+            else
+            {
+            }
+
             controls.update();
             //raycast.setFromCamera(mouse, camera);
 
